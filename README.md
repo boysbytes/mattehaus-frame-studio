@@ -4,7 +4,7 @@ A lightweight, browser-based editor for arranging images into a polished matte f
 
 > [!note]
 >
-> This is the sister app to Frame ▪ Art Manager, which uploads pictures to a Samsung Frame TV.  
+> This is the companion app to Frame ▪ Art Manager, which uploads pictures to a Samsung Frame TV.  
 > Frame ▪ Art Manager repo: <https://github.com/boysbytes/frame-art-manager>
 
 ![Screenshot showing the Mattehaus Frame Studio interface.](mattehaus-screenshot.png)
