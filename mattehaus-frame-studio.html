@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matte Frame Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0ece4;
+    --surface: #faf8f4;
+    --panel: #f5f1ea;
+    --border: #ddd8ce;
+    --border-light: #ccc6ba;
+    --gold: #8a6830;
+    --gold-light: #6b4f1e;
+    --gold-dim: #a07c40;
+    --text: #2a2318;
+    --text-dim: #6b5f4e;
+    --text-muted: #a09080;
+    --accent: #7a5c28;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ─── Header ─── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+
+  .logo {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .logo-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: var(--gold-light);
+  }
+
+  .logo-sub {
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-weight: 200;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  /* ─── Layout ─── */
+  .app-body {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    height: calc(100vh - 57px);
+  }
+
+  /* ─── Sidebar ─── */
+  .sidebar {
+    width: 310px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-light) transparent;
+  }
+
+  .section {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 22px;
+  }
+
+  .section-label {
+    font-size: 12px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 16px;
+    font-weight: 400;
+  }
+
+  /* ─── Controls ─── */
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    gap: 8px;
+  }
+
+  .control-row:last-child { margin-bottom: 0; }
+
+  .ctrl-label {
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    font-weight: 300;
+    min-width: 90px;
+  }
+
+  .ctrl-value {
+    font-size: 12px;
+    color: var(--gold);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Toggle buttons */
+  .toggle-group {
+    display: flex;
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 7px 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .toggle-btn.active {
+    background: var(--gold-dim);
+    color: #faf8f4;
+  }
+
+  .toggle-btn:hover:not(.active) {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  /* Range sliders */
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 2px;
+    background: var(--border-light);
+    border-radius: 1px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--surface);
+    box-shadow: 0 0 0 1px var(--gold-dim);
+    transition: transform 0.1s;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    border: 2px solid var(--surface);
+    cursor: pointer;
+  }
+
+  .slider-row {
+    margin-bottom: 14px;
+  }
+
+  .slider-row:last-child { margin-bottom: 0; }
+
+  .slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 7px;
+  }
+
+  /* Color pickers */
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .color-chip {
+    height: 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .color-chip.selected {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 1px var(--gold-dim);
+  }
+
+  .color-chip:hover { transform: scale(1.08); }
+
+  /* Custom color input */
+  .custom-color-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  input[type=color] {
+    width: 32px;
+    height: 26px;
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    background: none;
+    cursor: pointer;
+    padding: 2px;
+  }
+
+  .custom-color-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* ─── Image upload slots ─── */
+  .slot-grid {
+    display: grid;
+    gap: 8px;
+  }
+
+  .img-slot {
+    border: 1px dashed var(--border-light);
+    border-radius: 3px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    min-height: 70px;
+    background: var(--bg);
+  }
+
+  .img-slot:hover { border-color: var(--gold-dim); background: #e8e2d8; }
+
+  .img-slot.has-image { border-style: solid; }
+
+  .img-slot img {
+    width: 100%;
+    height: 70px;
+    object-fit: cover;
+    display: block;
+    opacity: 0.85;
+  }
+
+  .img-slot .slot-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: rgba(240,236,228,0.75);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .img-slot:hover .slot-overlay { opacity: 1; }
+  .img-slot:not(.has-image) .slot-overlay { opacity: 1; background: transparent; }
+
+  .slot-icon {
+    font-size: 18px;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .slot-text {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .slot-num {
+    position: absolute;
+    top: 5px;
+    left: 8px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 12px;
+    color: var(--gold-dim);
+    z-index: 2;
+  }
+
+  /* ─── Preview area ─── */
+  .preview-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    gap: 16px;
+    background: #888 repeating-conic-gradient(#aaa 0% 25%, #888 0% 50%) 0 0 / 20px 20px;
+    overflow: hidden;
+  }
+
+  .canvas-wrap {
+    position: relative;
+  }
+
+  #mainCanvas {
+    display: block;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+
+  .zoom-controls {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    display: flex;
+    gap: 8px;
+    background: white;
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 10;
+  }
+  .zoom-controls button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    font-size: 16px;
+    font-family: 'Jost', sans-serif;
+    color: var(--text);
+    border-radius: 4px;
+    font-weight: 400;
+  }
+  .zoom-controls button:hover {
+    background: var(--bg-hover);
+  }
+  .zoom-controls span {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    font-family: 'Jost', sans-serif;
+    font-weight: 400;
+    min-width: 48px;
+    justify-content: center;
+  }
+
+  .info-pill {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+  }
+
+  /* ─── Buttons ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 20px;
+    border-radius: 2px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+
+  .btn-primary {
+    background: var(--gold-dim);
+    color: var(--gold-light);
+    border: 1px solid var(--gold-dim);
+  }
+
+  .btn-primary:hover {
+    background: var(--gold);
+    color: #1a1508;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border-light);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--gold-dim);
+    color: var(--gold-light);
+  }
+
+  .btn-export {
+    background: linear-gradient(135deg, #7a5c28, #a07c40);
+    color: #faf8f4;
+    border: none;
+    font-weight: 400;
+    padding: 10px 28px;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+  }
+
+  .btn-export:hover {
+    background: linear-gradient(135deg, #8a6830, #b8975a);
+    box-shadow: 0 4px 20px rgba(122,92,40,0.25);
+  }
+
+  /* separator inside sidebar */
+  .sep {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+    margin-top: 2px;
+  }
+
+  .sep-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .sep-text {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  /* gap width display */
+  .size-preview {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    color: var(--gold-dim);
+    text-align: center;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+  }
+
+  .input-hidden { display: none; }
+
+  /* ─── Scrollbar ─── */
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-track { background: transparent; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 2px; }
+</style>
+<script>
+// Simplex Noise v2.4.0 — inlined (no CDN dependency)
+// Original by Stefan Gustavson, ported by Sean McCullough, MIT License
+(function(global){
+"use strict";
+function SimplexNoise(r){
+  if(r===undefined) r=Math;
+  this.p=new Uint8Array(256);
+  this.perm=new Uint8Array(512);
+  this.permMod12=new Uint8Array(512);
+  for(var i=0;i<256;i++) this.p[i]=i;
+  for(var i=255;i>0;i--){var n=Math.floor((i+1)*r.random());var q=this.p[i];this.p[i]=this.p[n];this.p[n]=q;}
+  for(var i=0;i<512;i++){this.perm[i]=this.p[i&255];this.permMod12[i]=this.perm[i]%12;}
+}
+var G2=0.2113248654051871;
+var grad3=[[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]];
+SimplexNoise.prototype.noise2D=function(xin,yin){
+  var perm=this.perm,permMod12=this.permMod12;
+  var n0,n1,n2;
+  var F2=0.5*(Math.sqrt(3)-1);
+  var s=(xin+yin)*F2;
+  var i=Math.floor(xin+s),j=Math.floor(yin+s);
+  var t=(i+j)*G2;
+  var X0=i-t,Y0=j-t;
+  var x0=xin-X0,y0=yin-Y0;
+  var i1,j1;
+  if(x0>y0){i1=1;j1=0;}else{i1=0;j1=1;}
+  var x1=x0-i1+G2,y1=y0-j1+G2;
+  var x2=x0-1+2*G2,y2=y0-1+2*G2;
+  var ii=i&255,jj=j&255;
+  var gi0=permMod12[ii+perm[jj]];
+  var gi1=permMod12[ii+i1+perm[jj+j1]];
+  var gi2=permMod12[ii+1+perm[jj+1]];
+  var t0=0.5-x0*x0-y0*y0;
+  if(t0<0) n0=0; else{t0*=t0;n0=t0*t0*(grad3[gi0][0]*x0+grad3[gi0][1]*y0);}
+  var t1=0.5-x1*x1-y1*y1;
+  if(t1<0) n1=0; else{t1*=t1;n1=t1*t1*(grad3[gi1][0]*x1+grad3[gi1][1]*y1);}
+  var t2=0.5-x2*x2-y2*y2;
+  if(t2<0) n2=0; else{t2*=t2;n2=t2*t2*(grad3[gi2][0]*x2+grad3[gi2][1]*y2);}
+  return 70*(n0+n1+n2);
+};
+global.SimplexNoise=SimplexNoise;
+})(window);
+</script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">Mattehaus</span>
+    <span class="logo-sub">Frame Studio</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
+    <button class="btn btn-export" onclick="exportImage()">Export 4K</button>
+  </div>
+</header>
+
+<div class="app-body">
+
+  <!-- ─── Sidebar ─── -->
+  <aside class="sidebar">
+
+    <!-- Layout -->
+    <div class="section">
+      <div class="section-label">Layout</div>
+
+      <div class="control-row">
+        <span class="ctrl-label">Type</span>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="btnDiptych" onclick="setType('diptych')">Diptych</button>
+          <button class="toggle-btn" id="btnTriptych" onclick="setType('triptych')">Triptych</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Matte Surface -->
+    <div class="section">
+      <div class="section-label">Matte Surface</div>
+
+      <div class="sep"><div class="sep-line"></div><span class="sep-text">Colour</span><div class="sep-line"></div></div>
+
+      <div class="color-grid" id="matColorGrid">
+        <!-- filled by JS -->
+      </div>
+
+      <div class="custom-color-row">
+        <input type="color" id="matCustomColor" value="#f5f0e8" oninput="setCustomMatColor(this.value)">
+        <span class="custom-color-label">Custom colour</span>
+      </div>
+    </div>
+
+    <!-- Dimensions -->
+    <div class="section">
+      <div class="section-label">Dimensions</div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="ctrl-label">Bevel Width</span>
+          <span class="ctrl-value" id="bevelWidthVal">18</span>
+        </div>
+        <input type="range" id="bevelWidth" min="6" max="48" value="18" step="2" oninput="updateVal('bevelWidthVal',this.value); renderFrame()">
+      </div>
+
+      <div class="slider-row">
+        <div class="slider-header">
+          <span class="ctrl-label">Matte Width</span>
+          <span class="ctrl-value" id="matteWidthVal">194</span>
+        </div>
+        <input type="range" id="matteWidth" min="40" max="400" value="194" step="2" oninput="updateVal('matteWidthVal',this.value); setMatteWidth(this.value); renderFrame()">
+      </div>
+
+      <div class="size-preview" id="sizePreview">3840 × 2160 px</div>
+    </div>
+
+    <!-- Images -->
+    <div class="section">
+      <div class="section-label">Images</div>
+      <div class="slot-grid" id="slotGrid">
+        <!-- filled by JS -->
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:var(--text-muted);line-height:1.6;">
+        Upload photos for each panel. Panels without images show a placeholder.
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ─── Preview ─── -->
+  <main class="preview-area" style="position: relative;">
+    <div class="zoom-controls">
+      <button onclick="changeZoom(-0.1)">−</button>
+      <span id="zoomLabel">100%</span>
+      <button onclick="changeZoom(0.1)">+</button>
+      <button onclick="resetZoom()">Reset</button>
+    </div>
+    <div class="canvas-wrap" id="canvasWrap">
+      <canvas id="mainCanvas"></canvas>
+    </div>
+  </main>
+
+</div>
+
+<!-- Hidden file inputs -->
+<input type="file" accept="image/*" class="input-hidden" id="fileInput0" onchange="loadImage(0,this)">
+<input type="file" accept="image/*" class="input-hidden" id="fileInput1" onchange="loadImage(1,this)">
+<input type="file" accept="image/*" class="input-hidden" id="fileInput2" onchange="loadImage(2,this)">
+
+<script>
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+const state = {
+  type: 'diptych',         // 'diptych' | 'triptych'
+  seamless: true,
+  matColor: '#f5f0e8',
+  coreColor: '#ffffff',
+  frameColor: '#1a1612',
+  outerBorder: 240,
+  bottomWeight: 1.0,
+  bevelWidth: 18,
+  matteWidth: 194,
+  frameWidth: 24,
+  images: [null, null, null],  // HTMLImageElement or null
+};
+
+const CANVAS_W = 3840;
+const CANVAS_H = 2160;
+const PREVIEW_MAX_W = () => window.innerWidth - 310 - 48;
+const PREVIEW_MAX_H = () => window.innerHeight - 57 - 80;
+
+// ─────────────────────────────────────────────
+//  COLOUR PALETTES
+// ─────────────────────────────────────────────
+const matColors = [
+  { hex:'#f5f0e8', label:'Warm White' },
+  { hex:'#faf7f0', label:'Ivory' },
+  { hex:'#e8e0d0', label:'Linen' },
+  { hex:'#d4cfc4', label:'Stone' },
+  { hex:'#b5b0a5', label:'Warm Gray' },
+];
+
+
+const frameColors = [
+  { hex:'#1a1612', label:'Ebony' },
+  { hex:'#3d2b1f', label:'Walnut' },
+  { hex:'#8b7355', label:'Oak' },
+  { hex:'#c0a060', label:'Gold' },
+  { hex:'#a0a0a0', label:'Silver' },
+  { hex:'#2c2c2c', label:'Graphite' },
+  { hex:'#f0ede6', label:'White' },
+  { hex:'#5c4a3c', label:'Bronze' },
+  { hex:'#1e3a5f', label:'Navy' },
+  { hex:'#4a3020', label:'Mahogany' },
+];
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+function buildColorGrid(containerId, palette, selectedHex, onSelect) {
+  const grid = document.getElementById(containerId);
+  grid.innerHTML = '';
+  palette.forEach(c => {
+    const chip = document.createElement('div');
+    chip.className = 'color-chip' + (c.hex === selectedHex ? ' selected' : '');
+    chip.style.background = c.hex;
+    chip.title = c.label;
+    // border for light colors
+    const luminance = getLuminance(c.hex);
+    if (luminance > 0.7) chip.style.boxShadow = 'inset 0 0 0 1px rgba(0,0,0,0.15)';
+    chip.onclick = () => {
+      grid.querySelectorAll('.color-chip').forEach(ch => ch.classList.remove('selected'));
+      chip.classList.add('selected');
+      onSelect(c.hex);
+    };
+    grid.appendChild(chip);
+  });
+}
+
+function getLuminance(hex) {
+  const r = parseInt(hex.slice(1,3),16)/255;
+  const g = parseInt(hex.slice(3,5),16)/255;
+  const b = parseInt(hex.slice(5,7),16)/255;
+  return 0.2126*r + 0.7152*g + 0.0722*b;
+}
+
+function buildSlotGrid() {
+  const count = state.type === 'diptych' ? 2 : 3;
+  const grid = document.getElementById('slotGrid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${Math.min(count,3)}, 1fr)`;
+  for (let i = 0; i < count; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'img-slot' + (state.images[i] ? ' has-image' : '');
+    slot.id = `slot${i}`;
+    slot.onclick = () => document.getElementById(`fileInput${i}`).click();
+
+    const numEl = document.createElement('div');
+    numEl.className = 'slot-num';
+    numEl.textContent = String(i+1);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'slot-overlay';
+
+    if (state.images[i]) {
+      const imgEl = document.createElement('img');
+      imgEl.src = state.images[i].src;
+      slot.appendChild(imgEl);
+      overlay.innerHTML = `<div class="slot-icon">↑</div><div class="slot-text">Replace</div>`;
+    } else {
+      overlay.innerHTML = `<div class="slot-icon">+</div><div class="slot-text">Upload</div>`;
+    }
+
+    slot.appendChild(numEl);
+    slot.appendChild(overlay);
+    grid.appendChild(slot);
+  }
+}
+
+function init() {
+  buildColorGrid('matColorGrid', matColors, state.matColor, hex => { state.matColor = hex; renderFrame(); });
+  buildSlotGrid();
+  setupCanvas();
+  renderFrame();
+}
+
+// ─────────────────────────────────────────────
+//  CANVAS SETUP & ZOOM
+// ─────────────────────────────────────────────
+let zoomMultiplier = 1;
+let panX = 0;
+let panY = 0;
+let isPanning = false;
+let startX = 0;
+let startY = 0;
+
+function setupCanvas() {
+  const canvas = document.getElementById('mainCanvas');
+  canvas.width  = CANVAS_W;
+  canvas.height = CANVAS_H;
+  scaleCanvas();
+
+  const area = document.querySelector('.preview-area');
+  area.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const oldZoom = zoomMultiplier;
+    if (e.deltaY < 0) zoomMultiplier *= 1.1;
+    else zoomMultiplier /= 1.1;
+    zoomMultiplier = Math.max(0.2, Math.min(zoomMultiplier, 10));
+
+    const rect = area.getBoundingClientRect();
+    const mx = e.clientX - rect.left - rect.width / 2;
+    const my = e.clientY - rect.top - rect.height / 2;
+
+    panX = mx - (mx - panX) * (zoomMultiplier / oldZoom);
+    panY = my - (my - panY) * (zoomMultiplier / oldZoom);
+
+    updateZoomUI();
+    scaleCanvas();
+  }, { passive: false });
+
+  area.addEventListener('mousedown', (e) => {
+    if (e.button === 0 || e.button === 1 || e.button === 2) {
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+      area.style.cursor = 'grabbing';
+    }
+  });
+  window.addEventListener('mousemove', (e) => {
+    if (!isPanning) return;
+    panX = e.clientX - startX;
+    panY = e.clientY - startY;
+    scaleCanvas();
+  });
+  window.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      area.style.cursor = '';
+    }
+  });
+}
+
+function changeZoom(delta) {
+  zoomMultiplier = Math.max(0.2, Math.min(zoomMultiplier + delta, 10));
+  updateZoomUI();
+  scaleCanvas();
+}
+
+function resetZoom() {
+  zoomMultiplier = 1;
+  panX = 0;
+  panY = 0;
+  updateZoomUI();
+  scaleCanvas();
+}
+
+function updateZoomUI() {
+  document.getElementById('zoomLabel').textContent = Math.round(zoomMultiplier * 100) + '%';
+}
+
+function scaleCanvas() {
+  const canvasWrap = document.getElementById('canvasWrap');
+  const canvas = document.getElementById('mainCanvas');
+  const maxW = PREVIEW_MAX_W();
+  const maxH = PREVIEW_MAX_H();
+  const baseScale = Math.min(maxW / CANVAS_W, maxH / CANVAS_H, 1);
+  
+  canvas.style.width  = Math.floor(CANVAS_W * baseScale) + 'px';
+  canvas.style.height = Math.floor(CANVAS_H * baseScale) + 'px';
+  
+  canvasWrap.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomMultiplier})`;
+}
+
+window.addEventListener('resize', () => { scaleCanvas(); });
+
+// ─────────────────────────────────────────────
+//  MAIN RENDER
+// ─────────────────────────────────────────────
+function renderFrame() {
+  const canvas = document.getElementById('mainCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const W = CANVAS_W;
+  const H = CANVAS_H;
+  const n = state.type === 'diptych' ? 2 : 3;
+
+  // No outer border: matte extends the full 4K canvas.
+  const bw = 0;
+  const bwBottom = 0;
+  const bevel = +document.getElementById('bevelWidth').value;
+  const fw = 0; // Frame width fixed to 0
+
+  // Fill the full 4K canvas so exported JPEG has no transparency.
+  // Use the matte colour so there is no visible black "frame" border.
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = state.matColor;
+  ctx.fillRect(0, 0, W, H);
+
+  // Calculate panel dimensions
+  // Total usable width after outer borders
+  const innerW = W - bw*2;
+  const panelW = Math.floor(innerW / n);
+  const innerH = H - bw - bwBottom;
+
+  drawSeamlessPanels(ctx, bw, bw, innerW, innerH, panelW, n, bevel, fw);
+}
+
+// ─── Seamless multi-panel render ────────────────────────────────
+// Draws one unified frame + matte, then cuts individual image openings.
+function drawSeamlessPanels(ctx, ox, oy, totalW, totalH, panelW, n, bevelPx, framePx) {
+  ctx.save();
+
+  // 1. Single outer frame border
+  if (framePx > 0) {
+    // Base fill
+    ctx.fillStyle = state.frameColor;
+    ctx.fillRect(ox, oy, totalW, totalH);
+  }
+
+  // 2. Single unified matte surface
+  const mx = ox + framePx;
+  const my = oy + framePx;
+  const mw = totalW - framePx * 2;
+  const mh = totalH - framePx * 2;
+
+  // 3. Images first (matte goes on top)
+  const maxPad = Math.floor(Math.min(mw, mh) * 0.35);
+  const pad = Math.min(state.matteWidth, maxPad);
+  const iw0 = Math.floor((mw - (n + 1) * pad) / n);
+  const ih0 = mh - pad * 2;
+
+  for (let i = 0; i < n; i++) {
+    const ix = mx + pad + i * (iw0 + pad);
+    const iy = my + pad;
+    if (state.images[i]) {
+      drawImageCover(ctx, state.images[i], ix, iy, iw0, ih0);
+    } else {
+      drawPlaceholder(ctx, ix, iy, iw0, ih0, i);
+    }
+  }
+
+  // 4. Matte with all image holes clipped out (evenodd)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(mx, my, mw, mh);
+  for (let i = 0; i < n; i++) {
+    const ix = mx + pad + i * (iw0 + pad);
+    const iy = my + pad;
+    ctx.rect(ix, iy, iw0, ih0);
+  }
+  ctx.clip('evenodd');
+  drawMatteSurface(ctx, mx, my, mw, mh, state.matColor);
+  ctx.restore();
+
+  // 5. Bevel faces on top for each opening
+  for (let i = 0; i < n; i++) {
+    const ix = mx + pad + i * (iw0 + pad);
+    const iy = my + pad;
+    drawBevelCut(ctx, ix, iy, iw0, ih0, bevelPx, state.coreColor, state.matColor);
+  }
+
+  // 6. Glass glare over the whole matte
+  drawGlassGlare(ctx, mx, my, mw, mh);
+
+  ctx.restore();
+}
+
+
+// ─── Texture Cache ───────────────────────────────────────────────
+const _texCache = {};
+
+// One simplex instance per seed — cached to avoid re-seeding overhead.
+const _snCache = {};
+function getSimplex(seed) {
+  if (!_snCache[seed]) {
+    const rng = alea(seed);
+    _snCache[seed] = new SimplexNoise({ random: rng });
+  }
+  return _snCache[seed];
+}
+
+// Alea PRNG — deterministic seed for SimplexNoise
+function alea(seed) {
+  let s0 = 0, s1 = 0, s2 = 0, c = 1;
+  const mash = (str) => {
+    str = String(str);
+    let n = 0xefc8249d;
+    for (let i = 0; i < str.length; i++) {
+      n += str.charCodeAt(i);
+      let h = 0.02519603282416938 * n;
+      n = h >>> 0; h -= n; h *= n; n = h >>> 0; h -= n; n += h * 0x100000000;
+    }
+    return (n >>> 0) * 2.3283064365386963e-10;
+  };
+  s0 = mash(' '); s1 = mash(' '); s2 = mash(' ');
+  s0 -= mash(seed); if (s0 < 0) s0 += 1;
+  s1 -= mash(seed); if (s1 < 0) s1 += 1;
+  s2 -= mash(seed); if (s2 < 0) s2 += 1;
+  return function() {
+    const t = 2091639 * s0 + c * 2.3283064365386963e-10;
+    s0 = s1; s1 = s2; return s2 = t - (c = t | 0);
+  };
+}
+
+// Matte board paper texture using multi-octave simplex noise.
+// - Isotropic fine grain (low-frequency simplex)
+// - Anisotropic horizontal press fibres (stretched Y scale → elongated horizontal streaks)
+// - Cross-grain micro fibres (stretched X scale)
+function makeMatteTexture(size, grainAmt, fiberAmt, seed) {
+  const key = `matte_${size}_${grainAmt}_${fiberAmt}_${seed}`;
+  if (_texCache[key]) return _texCache[key];
+
+  const sn  = getSimplex(seed);
+  const sn2 = getSimplex(seed + 1000);
+  const sn3 = getSimplex(seed + 2000);
+
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = size;
+  const octx = oc.getContext('2d');
+  const id = octx.createImageData(size, size);
+  const d = id.data;
+  const sc = 1 / size; // normalise coords to [0,1]
+
+  for (let y2 = 0; y2 < size; y2++) {
+    for (let x2 = 0; x2 < size; x2++) {
+      const i = (y2 * size + x2) * 4;
+      const nx = x2 * sc, ny = y2 * sc;
+
+      // Fine isotropic grain — two octaves
+      const grain =
+        sn.noise2D(nx * 80, ny * 80) * 0.6 +
+        sn.noise2D(nx * 180, ny * 180) * 0.4;
+
+      // Horizontal press fibres — stretch Y axis so noise streaks run horizontally
+      // Multiple frequencies for natural variation
+      const fiber =
+        sn2.noise2D(nx * 12, ny * 180) * 0.55 +
+        sn2.noise2D(nx * 25, ny * 400) * 0.30 +
+        sn2.noise2D(nx * 6,  ny * 80 ) * 0.15;
+
+      // Cross-grain micro fibres
+      const cross =
+        sn3.noise2D(nx * 200, ny * 14) * 0.7 +
+        sn3.noise2D(nx * 500, ny * 30) * 0.3;
+
+      const raw = grain * grainAmt * 22 + fiber * fiberAmt * 14 + cross * fiberAmt * 5;
+      const v = Math.max(0, Math.min(255, Math.round(128 + raw)));
+      d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+    }
+  }
+  octx.putImageData(id, 0, 0);
+  _texCache[key] = oc;
+  return oc;
+}
+
+// Bevel face texture — anisotropic simplex striations along the cut direction.
+// dir: 'h' = knife runs horizontally (top/bottom bevels)
+//      'v' = knife runs vertically   (left/right bevels)
+function makeBevelTexture(size, dir, seed) {
+  const key = `bevel_${size}_${dir}_${seed}`;
+  if (_texCache[key]) return _texCache[key];
+
+  const sn  = getSimplex(seed + 3000);
+  const sn2 = getSimplex(seed + 4000);
+
+  const oc = document.createElement('canvas');
+  oc.width = oc.height = size;
+  const octx = oc.getContext('2d');
+  const id = octx.createImageData(size, size);
+  const d = id.data;
+  const sc = 1 / size;
+
+  for (let y2 = 0; y2 < size; y2++) {
+    for (let x2 = 0; x2 < size; x2++) {
+      const i = (y2 * size + x2) * 4;
+      const nx = x2 * sc, ny = y2 * sc;
+
+      // Along-cut striations: stretch axis perpendicular to cut direction
+      // so noise lines run parallel to the blade
+      const striae = dir === 'h'
+        ? sn.noise2D(nx * 300, ny * 8)  * 0.6 + sn.noise2D(nx * 700, ny * 20) * 0.4
+        : sn.noise2D(nx * 8,  ny * 300) * 0.6 + sn.noise2D(nx * 20,  ny * 700) * 0.4;
+
+      // Perpendicular micro-roughness
+      const rough = dir === 'h'
+        ? sn2.noise2D(nx * 40, ny * 40) * 0.35
+        : sn2.noise2D(nx * 40, ny * 40) * 0.35;
+
+      const raw = striae * 14 + rough * 8;
+      const v = Math.max(0, Math.min(255, Math.round(128 + raw)));
+      d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+    }
+  }
+  octx.putImageData(id, 0, 0);
+  _texCache[key] = oc;
+  return oc;
+}
+
+function applyTexture(ctx, tex, x, y, w, h, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = ctx.createPattern(tex, 'repeat');
+  ctx.fillRect(x, y, w, h);
+  ctx.restore();
+}
+
+// Draw textured matte surface
+function drawMatteSurface(ctx, x, y, w, h, matColor) {
+  // 1. Base colour gradient
+  const grad = ctx.createLinearGradient(x, y, x+w, y+h);
+  grad.addColorStop(0,   adjustColor(matColor,  0.015));
+  grad.addColorStop(0.5, matColor);
+  grad.addColorStop(1,   adjustColor(matColor, -0.015));
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+  // 2. Stronger fiber overlay for realistic paper grain
+  applyTexture(ctx, makeMatteTexture(256, 0.65, 0.85, 42),   x, y, w, h, 0.09);
+  applyTexture(ctx, makeMatteTexture(512, 0.45, 0.35, 137), x, y, w, h, 0.06);
+}
+
+// ─── Bevel Cut ───────────────────────────────────────────────────
+// Called AFTER matte (with clipped hole) and image are already drawn.
+// Draws four trapezoidal bevel faces around the image opening edge,
+// sitting on top of the matte. No compositing tricks needed.
+//
+// Geometry: the bevel face occupies the ring between
+//   outer edge: (ix-bw, iy-bw, iw+bw*2, ih+bw*2)
+//   inner edge: (ix, iy, iw, ih)  ← the image opening
+// Each face is a clipped trapezoid. Gradient: matColor → coreColor.
+// Directional lighting: top+left faces are lighter, bottom+right darker.
+function drawBevelCut(ctx, ix, iy, iw, ih, bevelPx, coreColor, matColor) {
+  const bw = bevelPx;
+
+  function face(pts, grad, texDir, texSeed, fr, overlayGrad) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(pts[0], pts[1]); ctx.lineTo(pts[2], pts[3]);
+    ctx.lineTo(pts[4], pts[5]); ctx.lineTo(pts[6], pts[7]);
+    ctx.closePath();
+    
+    // 1. Fill base first
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // 2. Light/shadow overlay
+    if (overlayGrad) {
+      ctx.fillStyle = overlayGrad;
+      ctx.fill();
+    }
+
+    // 3. Texture (clipped to trapezoid)
+    ctx.save();
+    ctx.clip();
+    ctx.globalAlpha = 0.16;
+    ctx.globalCompositeOperation = 'overlay';
+    ctx.fillStyle = ctx.createPattern(makeBevelTexture(256, texDir, texSeed), 'repeat');
+    ctx.fillRect(fr[0], fr[1], fr[2], fr[3]);
+    ctx.restore();
+
+    // 4. Sub-pixel bridge: stroke with a 1px width to seal anti-aliasing gaps between faces
+    ctx.lineWidth = 1.0;
+    ctx.strokeStyle = grad;
+    ctx.stroke();
+    if (overlayGrad) {
+      ctx.strokeStyle = overlayGrad;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // Base gradients interpolating matColor (outer edge) into coreColor (inner edge).
+  // Make the core colour more visible across the bevel by starting the transition
+  // earlier in the gradient, rather than only at the very inner edge.
+  const coreStop = 0.35;
+
+  const tgBase = ctx.createLinearGradient(ix, iy-bw, ix, iy);
+  tgBase.addColorStop(0.0, matColor);
+  tgBase.addColorStop(coreStop, coreColor);
+  tgBase.addColorStop(1.0, coreColor);
+
+  const bgBase = ctx.createLinearGradient(ix, iy+ih+bw, ix, iy+ih); // bottom -> up
+  bgBase.addColorStop(0.0, matColor);
+  bgBase.addColorStop(coreStop, coreColor);
+  bgBase.addColorStop(1.0, coreColor);
+
+  const lgBase = ctx.createLinearGradient(ix-bw, iy, ix, iy); // left -> right
+  lgBase.addColorStop(0.0, matColor);
+  lgBase.addColorStop(coreStop, coreColor);
+  lgBase.addColorStop(1.0, coreColor);
+
+  const rgBase = ctx.createLinearGradient(ix+iw+bw, iy, ix+iw, iy); // right -> left
+  rgBase.addColorStop(0.0, matColor);
+  rgBase.addColorStop(coreStop, coreColor);
+  rgBase.addColorStop(1.0, coreColor);
+
+  // Overlay gradients to simulate soft, realistic lighting
+  const tgLight = ctx.createLinearGradient(ix, iy-bw, ix, iy); // top -> down
+  tgLight.addColorStop(0.0, 'rgba(0,0,0,0.25)'); // Shadow at top
+  tgLight.addColorStop(0.8, 'rgba(0,0,0,0.12)'); // 80% coverage
+  tgLight.addColorStop(1.0, 'rgba(255,255,255,0.05)'); // Highlight at tip
+
+  const bgLight = ctx.createLinearGradient(ix, iy+ih+bw, ix, iy+ih); // bottom -> up
+  bgLight.addColorStop(0.0, 'rgba(0,0,0,0.2)'); // Change to shadow
+  bgLight.addColorStop(0.8, 'rgba(0,0,0,0.05)'); // Shift out 80%
+  bgLight.addColorStop(1.0, 'rgba(255,255,255,0.05)'); // Tiny highlight at tip
+
+  const lgLight = ctx.createLinearGradient(ix-bw, iy, ix, iy); // left -> right
+  lgLight.addColorStop(0.0, 'rgba(0,0,0,0.18)'); // Shadow at left
+  lgLight.addColorStop(0.8, 'rgba(0,0,0,0.08)'); // 80% coverage
+  lgLight.addColorStop(1.0, 'rgba(255,255,255,0.05)'); // Highlight at tip
+
+  const rgLight = ctx.createLinearGradient(ix+iw+bw, iy, ix+iw, iy); // right -> left
+  rgLight.addColorStop(0.0, 'rgba(0,0,0,0.15)'); // Change to shadow
+  rgLight.addColorStop(0.8, 'rgba(0,0,0,0.05)'); // Shift out 80%
+  rgLight.addColorStop(1.0, 'rgba(255,255,255,0.05)'); // Tiny highlight at tip
+
+  // Draw faces with mitre shadows at all 8 corners
+  const tmLen = Math.min(iw * 0.5, bw * 12);
+  const lmLen = Math.min(ih * 0.5, bw * 12);
+
+  // The mitre shadow was drawing a faint diagonal line at the corners.
+  // Disable it to avoid the visible seam.
+  function drawMitreShadow(pts, x, y, w, h, gStart, gEnd, alpha) {
+    return;
+  }
+
+  // TOP face
+  face([ix-bw,iy-bw, ix+iw+bw,iy-bw, ix+iw,iy, ix,iy], tgBase, 'h', 7, [ix-bw,iy-bw,iw+bw*2,bw], tgLight);
+  drawMitreShadow([ix-bw,iy-bw, ix,iy, ix+tmLen,iy, ix+tmLen,iy-bw], ix-bw, iy-bw, tmLen+bw, bw, [ix-bw,iy-bw], [ix+tmLen,iy], 0.15);
+  drawMitreShadow([ix+iw+bw,iy-bw, ix+iw,iy, ix+iw-tmLen,iy, ix+iw-tmLen,iy-bw], ix+iw-tmLen, iy-bw, tmLen+bw, bw, [ix+iw+bw,iy-bw], [ix+iw-tmLen,iy], 0.05);
+
+  // BOTTOM face
+  face([ix,iy+ih, ix+iw,iy+ih, ix+iw+bw,iy+ih+bw, ix-bw,iy+ih+bw], bgBase, 'h', 19, [ix-bw,iy+ih,iw+bw*2,bw], bgLight);
+  drawMitreShadow([ix-bw,iy+ih+bw, ix,iy+ih, ix+tmLen,iy+ih, ix+tmLen,iy+ih+bw], ix-bw, iy+ih, tmLen+bw, bw, [ix-bw,iy+ih+bw], [ix+tmLen,iy+ih], 0.08);
+  drawMitreShadow([ix+iw+bw,iy+ih+bw, ix+iw,iy+ih, ix+iw-tmLen,iy+ih, ix+iw-tmLen,iy+ih+bw], ix+iw-tmLen, iy+ih, tmLen+bw, bw, [ix+iw+bw,iy+ih+bw], [ix+iw-tmLen,iy+ih], 0.03);
+
+  // LEFT face
+  face([ix-bw,iy-bw, ix,iy, ix,iy+ih, ix-bw,iy+ih+bw], lgBase, 'v', 31, [ix-bw,iy-bw,bw,ih+bw*2], lgLight);
+  drawMitreShadow([ix-bw,iy-bw, ix,iy, ix,iy+lmLen, ix-bw,iy+lmLen], ix-bw, iy-bw, bw, lmLen+bw, [ix-bw,iy-bw], [ix,iy+lmLen], 0.12);
+  drawMitreShadow([ix-bw,iy+ih+bw, ix,iy+ih, ix,iy+ih-lmLen, ix-bw,iy+ih-lmLen], ix-bw, iy+ih-lmLen, bw, lmLen+bw, [ix-bw,iy+ih+bw], [ix,iy+ih-lmLen], 0.06);
+
+  // RIGHT face
+  face([ix+iw,iy, ix+iw+bw,iy-bw, ix+iw+bw,iy+ih+bw, ix+iw,iy+ih], rgBase, 'v', 53, [ix+iw,iy-bw,bw,ih+bw*2], rgLight);
+  drawMitreShadow([ix+iw+bw,iy-bw, ix+iw,iy, ix+iw,iy+lmLen, ix+iw+bw,iy+lmLen], ix+iw, iy-bw, bw, lmLen+bw, [ix+iw+bw,iy-bw], [ix+iw,iy+lmLen], 0.05);
+  drawMitreShadow([ix+iw+bw,iy+ih+bw, ix+iw,iy+ih, ix+iw,iy+ih-lmLen, ix+iw+bw,iy+ih-lmLen], ix+iw, iy+ih-lmLen, bw, lmLen+bw, [ix+iw+bw,iy+ih+bw], [ix+iw,iy+ih-lmLen], 0.02);
+
+  // Inner shadow: deeper into the bevel (lighter, wider, softer)
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(ix, iy, iw, ih);
+  ctx.clip();
+
+  // Draw shadow along the top/left inner edge, with increased blur/offset.
+  ctx.beginPath();
+  ctx.moveTo(ix + iw + 200, iy - 1);
+  ctx.lineTo(ix - 1, iy - 1);
+  ctx.lineTo(ix - 1, iy + ih + 200);
+
+  ctx.shadowColor = 'rgba(0,0,0,0.25)';
+  ctx.shadowBlur = Math.max(bw * 2.4, 24);
+  ctx.shadowOffsetX = Math.max(bw * 1.4, 18);
+  ctx.shadowOffsetY = Math.max(bw * 1.4, 18);
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.stroke();
+  ctx.restore();
+
+  // Knife-edge dark line at inner perimeter
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1.0;
+  ctx.strokeRect(ix, iy, iw, ih);
+}
+
+// ─── Glass Glare ─────────────────────────────────────────────────
+function drawGlassGlare(ctx, x, y, w, h) {
+  // Very subtle upper-left diagonal highlight simulating glazing
+  const glare = ctx.createLinearGradient(x, y, x + w*0.6, y + h*0.5);
+  glare.addColorStop(0, 'rgba(255,255,255,0.04)');
+  glare.addColorStop(0.3, 'rgba(255,255,255,0.015)');
+  glare.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = glare;
+  ctx.fillRect(x, y, w, h);
+}
+
+// ─── Draw image cover-fit ─────────────────────────────────────────
+function drawImageCover(ctx, img, x, y, w, h) {
+  const imgAR = img.width / img.height;
+  const boxAR = w / h;
+  let sx, sy, sw, sh;
+  if (imgAR > boxAR) {
+    sh = img.height;
+    sw = img.height * boxAR;
+    sx = (img.width - sw) / 2;
+    sy = 0;
+  } else {
+    sw = img.width;
+    sh = img.width / boxAR;
+    sx = 0;
+    sy = (img.height - sh) / 2;
+  }
+  ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+}
+
+// ─── Placeholder ─────────────────────────────────────────────────
+function drawPlaceholder(ctx, x, y, w, h, idx) {
+  // Gradient placeholder (subtle, neutral tones)
+  const colors = [
+    ['#2f2c26','#3d3a34'],
+    ['#3d3a34','#4b4842'],
+    ['#3a3630','#4a4740'],
+  ];
+  const [c1, c2] = colors[idx % 3];
+  const grad = ctx.createLinearGradient(x, y, x+w, y+h);
+  grad.addColorStop(0, c1);
+  grad.addColorStop(1, c2);
+  ctx.fillStyle = grad;
+  ctx.fillRect(x, y, w, h);
+
+  // Subtle grid pattern
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  const step = Math.floor(Math.min(w, h) / 8);
+  for (let gx = x; gx <= x+w; gx += step) {
+    ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y+h); ctx.stroke();
+  }
+  for (let gy = y; gy <= y+h; gy += step) {
+    ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x+w, gy); ctx.stroke();
+  }
+
+  // Center label
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.font = `${Math.floor(Math.min(w,h)*0.06)}px "Cormorant Garamond", serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`Image ${idx+1}`, x + w/2, y + h/2);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+}
+
+// ─────────────────────────────────────────────
+//  COLOUR UTILITIES
+// ─────────────────────────────────────────────
+function adjustColor(hex, amount) {
+  // amount: -1 to +1
+  let r = parseInt(hex.slice(1,3), 16);
+  let g = parseInt(hex.slice(3,5), 16);
+  let b = parseInt(hex.slice(5,7), 16);
+  r = Math.min(255, Math.max(0, Math.round(r + amount*255)));
+  g = Math.min(255, Math.max(0, Math.round(g + amount*255)));
+  b = Math.min(255, Math.max(0, Math.round(b + amount*255)));
+  return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+}
+
+// ─────────────────────────────────────────────
+//  CONTROL HANDLERS
+// ─────────────────────────────────────────────
+function setType(t) {
+  state.type = t;
+  document.getElementById('btnDiptych').classList.toggle('active', t === 'diptych');
+  document.getElementById('btnTriptych').classList.toggle('active', t === 'triptych');
+  // Reset unused image slot when switching to diptych
+  buildSlotGrid();
+  renderFrame();
+}
+
+function setCustomMatColor(hex) {
+  state.matColor = hex;
+  // Deselect preset chips
+  document.querySelectorAll('#matColorGrid .color-chip').forEach(c => c.classList.remove('selected'));
+  renderFrame();
+}
+
+function setMatteWidth(val) {
+  state.matteWidth = Number(val);
+}
+
+function updateVal(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+function updateBottomWeightVal(val) {
+  document.getElementById('bottomWeightVal').textContent = (val/100).toFixed(1) + '×';
+}
+
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+// ─────────────────────────────────────────────
+//  IMAGE LOADING
+// ─────────────────────────────────────────────
+function loadImage(idx, input) {
+  if (!input.files || !input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      state.images[idx] = img;
+      buildSlotGrid();
+      renderFrame();
+      // Reset file input so the same file can be re-selected after a reset
+      input.value = '';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// ─────────────────────────────────────────────
+//  EXPORT
+// ─────────────────────────────────────────────
+function exportImage() {
+  const btn = document.querySelector('.btn-export');
+  btn.textContent = 'Exporting…';
+  btn.disabled = true;
+
+  setTimeout(() => {
+    renderFrame();
+    const canvas = document.getElementById('mainCanvas');
+
+    const filename = `mattehaus-${state.type}.jpg`;
+
+    canvas.toBlob(blob => {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      btn.textContent = 'Export 4K';
+      btn.disabled = false;
+    }, 'image/jpeg', 0.9);
+  }, 50);
+}
+
+
+// ─────────────────────────────────────────────
+//  RESET
+// ─────────────────────────────────────────────
+function resetAll() {
+  state.type = 'diptych';
+  state.matColor = '#f5f0e8';
+  state.coreColor = '#ffffff';
+  state.frameColor = '#1a1612';
+  state.images = [null, null, null];
+
+  // Reset controls
+  document.getElementById('bevelWidth').value = 18;
+  updateVal('bevelWidthVal', 18);
+  document.getElementById('matteWidth').value = 194;
+  updateVal('matteWidthVal', 194);
+  state.matteWidth = 194;
+
+  document.getElementById('btnDiptych').classList.add('active');
+  document.getElementById('btnTriptych').classList.remove('active');
+
+  // Clear file inputs so users can re-select the same files after a reset
+  document.getElementById('fileInput0').value = '';
+  document.getElementById('fileInput1').value = '';
+  document.getElementById('fileInput2').value = '';
+
+  const canvas = document.getElementById('mainCanvas');
+  canvas.width = CANVAS_W;
+  canvas.height = CANVAS_H;
+  scaleCanvas();
+
+  init();
+}
+
+// ─────────────────────────────────────────────
+//  KICK OFF
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
