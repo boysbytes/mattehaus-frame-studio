@@ -1302,9 +1302,10 @@ function drawBevelCut(ctx, ix, iy, iw, ih, bevelPx, coreColor, matColor) {
   ctx.strokeRect(ix - bw + 0.5, iy - bw + 0.5, iw + bw*2 - 1, ih + bw*2 - 1);
   ctx.restore();
 
-  // Bright knife-tip line at very inner perimeter (exposed core edge)
+  // Inner cut line at the bevel/image boundary — now darker to simulate shadow.
   ctx.save();
-  ctx.strokeStyle = adjustColor(coreColor, 0.18);
+  ctx.strokeStyle = adjustColor(coreColor, -0.22); // darker than core, mimics bevel shadow on image
+  ctx.globalAlpha = 0.75;
   ctx.lineWidth = 0.75;
   ctx.strokeRect(ix + 0.75, iy + 0.75, iw - 1.5, ih - 1.5);
   ctx.restore();
