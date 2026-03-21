@@ -174,6 +174,7 @@
 
   /* Range sliders */
   input[type=range] {
+     appearance: none;
     -webkit-appearance: none;
     width: 100%;
     height: 2px;
@@ -929,6 +930,50 @@ function renderFrame() {
   drawSeamlessPanels(ctx, bw, bw, innerW, innerH, panelW, n, bevel, fw);
 }
 
+function getOpeningLayout(mx, my, mw, mh, n) {
+  if (n === 3) {
+    const outerPad = Math.min(state.matteWidth, Math.floor(Math.min(mw, mh) * 0.35));
+    const innerGap = Math.max(24, Math.min(outerPad - 1, Math.round(outerPad * 0.6)));
+    const widthLimitedW = Math.floor((mw - outerPad * 2 - innerGap * (n - 1)) / n);
+    const heightLimitedW = Math.floor((mh - outerPad * 2) * (2 / 3));
+    const openingW = Math.max(1, Math.min(widthLimitedW, heightLimitedW));
+    const openingH = Math.max(1, Math.floor(openingW * (3 / 2)));
+    const compositionW = openingW * n + innerGap * (n - 1);
+    const compositionH = openingH;
+    const startX = mx + Math.floor((mw - compositionW) / 2);
+    const startY = my + Math.floor((mh - compositionH) / 2);
+    const openings = [];
+
+    for (let i = 0; i < n; i++) {
+      openings.push({
+        x: startX + i * (openingW + innerGap),
+        y: startY,
+        w: openingW,
+        h: openingH,
+      });
+    }
+
+    return openings;
+  }
+
+  const maxPad = Math.floor(Math.min(mw, mh) * 0.35);
+  const pad = Math.min(state.matteWidth, maxPad);
+  const openingW = Math.floor((mw - (n + 1) * pad) / n);
+  const openingH = mh - pad * 2;
+  const openings = [];
+
+  for (let i = 0; i < n; i++) {
+    openings.push({
+      x: mx + pad + i * (openingW + pad),
+      y: my + pad,
+      w: openingW,
+      h: openingH,
+    });
+  }
+
+  return openings;
+}
+
 // ─── Seamless multi-panel render ────────────────────────────────
 // Draws one unified frame + matte, then cuts individual image openings.
 function drawSeamlessPanels(ctx, ox, oy, totalW, totalH, panelW, n, bevelPx, framePx) {
@@ -946,16 +991,11 @@ function drawSeamlessPanels(ctx, ox, oy, totalW, totalH, panelW, n, bevelPx, fra
   const my = oy + framePx;
   const mw = totalW - framePx * 2;
   const mh = totalH - framePx * 2;
+  const openings = getOpeningLayout(mx, my, mw, mh, n);
 
   // 3. Images first (matte goes on top)
-  const maxPad = Math.floor(Math.min(mw, mh) * 0.35);
-  const pad = Math.min(state.matteWidth, maxPad);
-  const iw0 = Math.floor((mw - (n + 1) * pad) / n);
-  const ih0 = mh - pad * 2;
-
   for (let i = 0; i < n; i++) {
-    const ix = mx + pad + i * (iw0 + pad);
-    const iy = my + pad;
+    const { x: ix, y: iy, w: iw0, h: ih0 } = openings[i];
     if (state.images[i]) {
       drawImageCover(ctx, state.images[i], ix, iy, iw0, ih0);
     } else {
@@ -968,8 +1008,7 @@ function drawSeamlessPanels(ctx, ox, oy, totalW, totalH, panelW, n, bevelPx, fra
   ctx.beginPath();
   ctx.rect(mx, my, mw, mh);
   for (let i = 0; i < n; i++) {
-    const ix = mx + pad + i * (iw0 + pad);
-    const iy = my + pad;
+    const { x: ix, y: iy, w: iw0, h: ih0 } = openings[i];
     ctx.rect(ix, iy, iw0, ih0);
   }
   ctx.clip('evenodd');
@@ -978,8 +1017,7 @@ function drawSeamlessPanels(ctx, ox, oy, totalW, totalH, panelW, n, bevelPx, fra
 
   // 5. Bevel faces on top for each opening
   for (let i = 0; i < n; i++) {
-    const ix = mx + pad + i * (iw0 + pad);
-    const iy = my + pad;
+    const { x: ix, y: iy, w: iw0, h: ih0 } = openings[i];
     drawBevelCut(ctx, ix, iy, iw0, ih0, bevelPx, state.coreColor, state.matColor);
   }
 
