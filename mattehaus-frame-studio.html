@@ -593,7 +593,7 @@ global.SimplexNoise=SimplexNoise;
       </div>
 
       <div class="custom-color-row">
-        <input type="color" id="matCustomColor" value="#f5f0e8" oninput="setCustomMatColor(this.value)">
+        <input type="color" id="matCustomColor" value="#d4cfc4" oninput="setCustomMatColor(this.value)">
         <span class="custom-color-label">Custom colour</span>
       </div>
 
@@ -624,9 +624,9 @@ global.SimplexNoise=SimplexNoise;
       <div class="slider-row">
         <div class="slider-header">
           <span class="ctrl-label">Bevel Width</span>
-          <span class="ctrl-value" id="bevelWidthVal">18</span>
+          <span class="ctrl-value" id="bevelWidthVal">10</span>
         </div>
-        <input type="range" id="bevelWidth" min="6" max="48" value="18" step="2" oninput="updateVal('bevelWidthVal',this.value); renderFrame()">
+        <input type="range" id="bevelWidth" min="6" max="48" value="10" step="2" oninput="updateVal('bevelWidthVal',this.value); renderFrame()">
       </div>
 
       <div class="slider-row">
@@ -680,12 +680,12 @@ global.SimplexNoise=SimplexNoise;
 const state = {
   type: 'diptych',         // 'diptych' | 'triptych'
   seamless: true,
-  matColor: '#f5f0e8',
+  matColor: '#d4cfc4',
   coreColor: '#ffffff',
   frameColor: '#1a1612',
   outerBorder: 240,
   bottomWeight: 1.0,
-  bevelWidth: 18,
+  bevelWidth: 10,
   matteWidth: 194,
   frameWidth: 24,
   useTexture: true,        // overlay texture.jpg on matte surface
@@ -1206,29 +1206,24 @@ function drawMatteSurface(ctx, x, y, w, h, matColor) {
 // Physical mat-board bevel model.
 // The bevel is a 45° knife cut through the mat board. Each face is a
 // clipped trapezoid with:
-//   - Material gradient: matColor (outer junction) → coreColor (inner knife-tip)
-//   - Directional lighting tint based on top-left light source
+//   - Flat directional shading: coreColor base tinted by face normal × light vector
 //   - Anisotropic knife-cut striations
-// Inner edge: bright knife-tip line + soft drop-shadow into image window.
+// Light source: top-left. Top face brightest, bottom darkest.
+// Inner edge: thin receding shadow line at knife tip.
 function drawBevelCut(ctx, ix, iy, iw, ih, bevelPx, coreColor, matColor) {
   const bw = bevelPx;
 
   // Draw one trapezoid bevel face.
-  // x0,y0 → x1,y1: direction of gradient (outer edge → inner edge)
-  // lightRgba: flat directional tint (rgba string)
-  function face(pts, x0, y0, x1, y1, lightRgba, texDir, texSeed, fr) {
+  // lightRgba: flat directional shadow tint (rgba string) based on face normal vs light
+  function face(pts, lightRgba, texDir, texSeed, fr) {
     ctx.save();
     ctx.beginPath();
     ctx.moveTo(pts[0], pts[1]); ctx.lineTo(pts[2], pts[3]);
     ctx.lineTo(pts[4], pts[5]); ctx.lineTo(pts[6], pts[7]);
     ctx.closePath();
 
-    // Material: smooth fade from mat face colour to exposed core
-    const g = ctx.createLinearGradient(x0, y0, x1, y1);
-    g.addColorStop(0.00, matColor);
-    g.addColorStop(0.55, adjustColor(coreColor, -0.04));
-    g.addColorStop(1.00, coreColor);
-    ctx.fillStyle = g;
+    // Solid exposed core — directional shading applied as overlay below
+    ctx.fillStyle = coreColor;
     ctx.fill();
 
     // Directional lighting + knife striations, clipped to trapezoid
@@ -1257,40 +1252,36 @@ function drawBevelCut(ctx, ix, iy, iw, ih, bevelPx, coreColor, matColor) {
 
     // Seal anti-aliasing gap between faces
     ctx.lineWidth = 1.0;
-    ctx.strokeStyle = g;
+    ctx.strokeStyle = coreColor;
     ctx.stroke();
     ctx.restore();
   }
 
-  // Top face — lightest face, closest to light source: very faint shadow
+  // Top face — faces up toward light source: brightest
   face(
     [ix-bw, iy-bw, ix+iw+bw, iy-bw, ix+iw, iy, ix, iy],
-    ix, iy-bw, ix, iy,
-    'rgba(0,0,0,0.15)',
+    'rgba(0,0,0,0.10)',
     'h', 7, [ix-bw, iy-bw, iw+bw*2, bw]
   );
 
-  // Bottom face — clearly shadowed but lighter than before
+  // Bottom face — faces down away from light: darkest
   face(
     [ix, iy+ih, ix+iw, iy+ih, ix+iw+bw, iy+ih+bw, ix-bw, iy+ih+bw],
-    ix, iy+ih+bw, ix, iy+ih,
-    'rgba(0,0,0,0.15)',
+    'rgba(0,0,0,0.10)',
     'h', 19, [ix-bw, iy+ih, iw+bw*2, bw]
   );
 
-  // Left face — slightly in shadow so its mitre with the lit top face reads clearly
+  // Left face — faces left toward light: medium-bright
   face(
     [ix-bw, iy-bw, ix, iy, ix, iy+ih, ix-bw, iy+ih+bw],
-    ix-bw, iy, ix, iy,
-    'rgba(0,0,0,0.07)',
+    'rgba(0,0,0,0.18)',
     'v', 31, [ix-bw, iy-bw, bw, ih+bw*2]
   );
 
-  // Right face — medium shadow: sits clearly between left and bottom
+  // Right face — faces right away from light: medium-dark
   face(
     [ix+iw, iy, ix+iw+bw, iy-bw, ix+iw+bw, iy+ih+bw, ix+iw, iy+ih],
-    ix+iw+bw, iy, ix+iw, iy,
-    'rgba(0,0,0,0.07)',
+    'rgba(0,0,0,0.32)',
     'v', 53, [ix+iw, iy-bw, bw, ih+bw*2]
   );
 
@@ -1302,10 +1293,10 @@ function drawBevelCut(ctx, ix, iy, iw, ih, bevelPx, coreColor, matColor) {
   ctx.strokeRect(ix - bw + 0.5, iy - bw + 0.5, iw + bw*2 - 1, ih + bw*2 - 1);
   ctx.restore();
 
-  // Inner cut line at the bevel/image boundary — now darker to simulate shadow.
+  // Inner cut line at the bevel/image boundary — subtle shadow so the edge recedes.
   ctx.save();
-  ctx.strokeStyle = adjustColor(coreColor, -0.22); // darker than core, mimics bevel shadow on image
-  ctx.globalAlpha = 0.75;
+  ctx.strokeStyle = adjustColor(coreColor, -0.10); // subtle shadow — inner edge recedes, doesn't glow
+  ctx.globalAlpha = 0.35;
   ctx.lineWidth = 0.75;
   ctx.strokeRect(ix + 0.75, iy + 0.75, iw - 1.5, ih - 1.5);
   ctx.restore();
@@ -1495,7 +1486,7 @@ function exportImage() {
 // ─────────────────────────────────────────────
 function resetAll() {
   state.type = 'diptych';
-  state.matColor = '#f5f0e8';
+  state.matColor = '#d4cfc4';
   state.coreColor = '#ffffff';
   state.frameColor = '#1a1612';
   state.images = [null, null, null];
